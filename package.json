@@ -1,0 +1,29 @@
+{
+  "name": "n-queens",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petersandor/n-queens.git"
+  },
+  "keywords": [
+    "n",
+    "queens",
+    "js",
+    "node",
+    "cli"
+  ],
+  "author": "Peter Sandor <contact@petersandor.name>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/petersandor/n-queens/issues"
+  },
+  "homepage": "https://github.com/petersandor/n-queens#readme",
+  "dependencies": {
+    "commander": "^2.9.0"
+  }
+}
