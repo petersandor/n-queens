@@ -2,9 +2,10 @@
   "name": "n-queens",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "queens.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --max-warnings 0"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,10 @@
   },
   "homepage": "https://github.com/petersandor/n-queens#readme",
   "dependencies": {
+    "colors": "^1.1.2",
     "commander": "^2.9.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0"
   }
 }
