@@ -64,7 +64,8 @@ $ ./queens.js
     solutions: 10
     time: 24.208ms
 ```
+Note: Displays only 4 solutions by default. If you really want to see all of them, use `-p`
 
 ## License
 
-MIT © [Peter Sandor](http://petersandor.name)
+MIT © [Peter Sandor](https://petersandor.name)
