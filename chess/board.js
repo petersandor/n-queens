@@ -1,180 +1,175 @@
-var pieces = require ('./pieces');
-var colors = require('colors');
+const pieces = require('./pieces');
+const colors = require('colors');
 
-function Board(size) {
-	this._size = size;
-	this._board = this._createBoard();
+class Board {
 
-	// Output formatting
-	this._cellSeparator = '|';
-}
+	constructor(size) {
+		this._size = size;
+		this._board = this._createBoard();
+		this._changes = [];
 
-Board.prototype._createBoard = function() {
-	var board = new Array(this._size);
-
-	return board.fill(new Array(this._size).fill(pieces.EMPTY));
-}
-
-Board.prototype._rowToString = function(row) {
-	var rowStr = this._cellSeparator +
-				row.join(this._cellSeparator) +
-				this._cellSeparator + '\n';
-
-	return rowStr.replace(/Q/, colors.green(pieces.QUEEN));
-}
-
-Board.prototype._isPlacementAllowed = function(x, y) {
-	// 1. Look horizontally
-	var isAllowedHorizontaly = this._board[x].every(function(cell) {
-		return cell === pieces.EMPTY;
-	});
-
-	if (!isAllowedHorizontaly) {
-		// console.log('horizontal fail', this._board[x]);
+		// Output formatting
+		this._cellSeparator = '|';
 	}
 
-	// 2. Look vertically
-	var isAllowedVerticaly = true;
-	var searchDepthVert = 0;
+	_createBoard() {
+		let board = new Array(this._size);
 
-	for (; searchDepthVert < this._size; searchDepthVert++) {
-		if (this._board[searchDepthVert][y] !== pieces.EMPTY) {
-			isAllowedVerticaly = false;
-			// console.log('vertical fail', searchDepthVert, y, this._board[searchDepthVert][y])
-		}
+		return board.fill(new Array(this._size).fill(pieces.EMPTY));
 	}
 
-	// 3. Look diagonally
-	// 3. a) 45deg
-	var isAllowedDiagonally = true;
-	var positionDiff = x - y;
-	var offset = {
-		x: 0,
-		y: 0
-	};
+	_rowToString(row) {
+		let rowStr = this._cellSeparator;
+		rowStr += row.join(this._cellSeparator);
+		rowStr += this._cellSeparator + '\n';
 
-	if (positionDiff > 0) {
-		offset.x = positionDiff;
-		offset.y = 0;
+		return rowStr.replace(/Q/, colors.green(pieces.QUEEN));
 	}
 
-	if (positionDiff < 0) {
-		offset.x = 0;
-		offset.y = Math.abs(positionDiff);
+	_isQueenAllowedHorizontal(x) {
+		return this._board[x].every(cell => cell === pieces.EMPTY);
 	}
 
-	while (offset.x !== this._size && offset.y !== this._size) {
-		if (this._board[offset.x][offset.y] !== pieces.EMPTY) {
-			isAllowedDiagonally = false;
-			// console.log('45deg fail', offset, this._board[offset.x][offset.y])
+	_isQueenAllowedVertical(x, y) {
+		let searchDepthVert = 0;
+		let isAllowed = true;
+
+		for (; searchDepthVert < this._size; searchDepthVert++) {
+			if (this._board[searchDepthVert][y] !== pieces.EMPTY) {
+				isAllowed = false;
+			}
 		}
 
-		// this._updateCell(offset.x, offset.y, '\\');
-
-		offset.x++;
-		offset.y++;
+		return isAllowed;
 	}
 
-	// 3. b) 135deg
-	offset.x = x;
-	offset.y = y;
+	_isQueenAllowedDiag(x, y) {
+		// Look diagonally
+		// a) 45deg
+		let isAllowedDiagonally = true;
+		let positionDiff = x - y;
+		let offset = { x: 0, y: 0 };
 
-	while (offset.x < (this._size - 1) && offset.y !== 0) {
-		offset.x++;
-		offset.y--;
-	}
-
-	while (offset.x !== this._size && offset.y !== this._size) {
-		if (this._board[offset.x][offset.y] !== pieces.EMPTY) {
-			isAllowedDiagonally = false;
-			// console.log('135 deg fail', offset.x, offset.y, this._board[offset.x][offset.y]);
+		if (positionDiff > 0) {
+			offset.x = positionDiff;
+			offset.y = 0;
 		}
 
-		// if (cell === '\\') {
-		// 	this._updateCell(offset.x, offset.y, 'X');
-		// } else {
-		// 	this._updateCell(offset.x, offset.y, '/');
-		// }
-
-		if (offset.x === 0 || offset.y === (this._size - 1)) {
-			break;
+		if (positionDiff < 0) {
+			offset.x = 0;
+			offset.y = Math.abs(positionDiff);
 		}
 
-		offset.x--;
-		offset.y++;
+		while (offset.x !== this._size && offset.y !== this._size) {
+			if (this._board[offset.x][offset.y] !== pieces.EMPTY) {
+				isAllowedDiagonally = false;
+			}
+
+			offset.x++;
+			offset.y++;
+		}
+
+		// b) 135deg
+		offset.x = x;
+		offset.y = y;
+
+		while (offset.x < (this._size - 1) && offset.y !== 0) {
+			offset.x++;
+			offset.y--;
+		}
+
+		while (offset.x !== this._size && offset.y !== this._size) {
+			if (this._board[offset.x][offset.y] !== pieces.EMPTY) {
+				isAllowedDiagonally = false;
+			}
+
+			if (offset.x === 0 || offset.y === (this._size - 1)) {
+				break;
+			}
+
+			offset.x--;
+			offset.y++;
+		}
+
+		return isAllowedDiagonally;
 	}
 
-	return isAllowedHorizontaly && isAllowedVerticaly && isAllowedDiagonally;
-}
+	_isPlacementAllowed(x, y) {
+		return this._isQueenAllowedHorizontal(x) &&
+			this._isQueenAllowedVertical(x, y) &&
+			this._isQueenAllowedDiag(x, y);
+	}
 
-Board.prototype._updateCell = function(x, y, piece) {
-	this._board[x] = this._board[x].map(function(cell, index) {
-		if (y === index) {
+	_updateCell(x, y, piece) {
+		this._board[x] = this._board[x].map((cell, index) => {
+			if (y !== index) {
+				return cell;
+			}
+
+			// Don't record clearing cells
+			if (piece !== pieces.EMPTY) {
+				this._changes.push({
+					type: 'ADD',
+					piece: piece,
+					x: x,
+					y: y
+				})
+			}
+
 			return piece;
+		});
+
+		return this;
+	}
+
+	toString() {
+		let str = '\n';
+
+		this._board.forEach((row, index) => {
+			str += (this._showIndexes ? index + this._cellSeparator : '');
+			str += this._rowToString(row);
+		}, this);
+
+		return colors.bold(str);
+	}
+
+	placeQueen(x, y) {
+		const isAllowed = this._isPlacementAllowed(x, y);
+
+		if (isAllowed) {
+			this._updateCell(x, y, pieces.QUEEN);
 		}
 
-		return cell;
-	});
-};
-
-Board.prototype.toString = function() {
-	var str = '\n';
-
-	this._board.forEach(function(row, index) {
-		str += (this._showIndexes ? index + this._cellSeparator : '') + this._rowToString(row);
-	}, this);
-
-	if (this.getQueenCount() === this._size) {
-		str += colors.bgGreen('\nYAY\n');
-	} else {
-		str += colors.bgRed('\nFAILED HORRIBLY\n');
+		return isAllowed;
 	}
 
-	return colors.bold(str);
-}
+	getQueenCount() {
+		return this._board.reduce((prev, curr) => {
+			if (curr.indexOf(pieces.QUEEN) !== -1) {
+				return prev + 1;
+			}
 
-Board.prototype.placeQueen = function(x, y) {
-	var isAllowed = this._isPlacementAllowed(x, y);
-
-	if (isAllowed) {
-		this._updateCell(x, y, pieces.QUEEN);
+			return prev;
+		}, 0);
 	}
 
-	return isAllowed;
-}
+	undoPreviousPlacement() {
+		let previousAction = null;
 
-Board.prototype.getQueenCount = function() {
-	return this._board.reduce(function(prev, curr) {
-		if (curr.indexOf(pieces.QUEEN) !== -1) {
-			return prev + 1;
+		if (!this._changes.length) {
+			return false;
+		} else {
+			previousAction = this._changes.pop();
 		}
 
-		return prev;
-	}, 0)
-}
+		this._updateCell(previousAction.x, previousAction.y, pieces.EMPTY);
 
-Board.prototype.getBoard = function() {
-	return this._board.map(function(row) {
-		return row;
-	})
-}
-
-Board.prototype.getSize = function() {
-	return this._size;
-}
-
-Board.prototype.isEqualTo = function(otherBoard) {
-	var _otherBoard = otherBoard.getBoard();
-
-	if (this._size !== otherBoard.getSize()) {
-		return false;
+		return previousAction;
 	}
 
-	return this._board.every(function(row, rowIndex) {
-		return row.every(function(cell, cellIndex) {
-			return cell === _otherBoard[rowIndex][cellIndex];
-		})
-	});
+	get changes() {
+		return this._changes;
+	}
 }
 
 module.exports = Board;

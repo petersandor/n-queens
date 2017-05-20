@@ -1,16 +1,34 @@
 #!/usr/bin/env node
 
-var program = require('commander');
-var colors = require('colors');
+const program = require('commander');
+const packageJson = require('./package');
+const Solver = require('./solution/solver');
 
 program
-	.version('1.0.0')
+	.version(packageJson.version)
 	.description('Calculates possible placements of N queens on NxN board')
-	.usage('<n>')
-	.parse(process.argv);
+	.option('-n, --number <n>', 'Number of queens and board size', parseInt)
+	.option('-p, --print-all', 'Print all solutions found (n > 8 has hundreds)')
 
-if (process.argv.length >= 2) {
+program.on('--help', () => {
+	console.log('  Example usage:');
+	console.log('');
+	console.log('    $ ./queens.js -n 5 -p');
+	console.log('');
+});
+
+program.parse(process.argv);
+
+if (program.number > 0) {
+	const solverInstance = new Solver({
+		size: program.number,
+		printAll: !!program.printAll
+	});
+
+	solverInstance.start();
+}
+
+if (process.argv.length <= 2) {
 	program.outputHelp();
-	return;
 }
 

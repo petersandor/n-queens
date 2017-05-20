@@ -1,78 +1,87 @@
-var board = require('../chess/board');
+const board = require('../chess/board');
 
-var N = +process.argv[2];
+const DISPLAY_SOLUTIONS_COUNT = 4;
 
-var iteration = 0;
-var solutions = [];
-var duplicates = [];
-var fails = [];
+class Solver {
+	constructor(options) {
+		this._boardSize = options.size;
+		this._boardInstance = new board(options.size);
 
-function tryConfiguration(pos) {
-	var b = new board(N);
-
-	// ALL THE COMBINATIONS (...almost)
-	// console.log('Placing first queen at', pos.x, pos.y);
-	b.placeQueen(pos.x, pos.y);
-
-	for (var x = 0; x < N; x++) {
-
-		for (var y = 0; y < N; y++) {
-			// console.log('Try placing at ', x, y);
-			b.placeQueen(x, y);
-		}
+		this._solutions = [];
+		this._printAllSolutions = !!options.printAll;
+		this._callCounter = 0;
 	}
 
-	// Verification & output
-	if (b.getQueenCount() === N) {
-		var isUnique = solutions.every(function(solution) {
-			return !solution.isEqualTo(b);
-		});
+	_runSolution(doneCallback) {
+		const placeFn = (startX, startY) => {
+			const N = this._boardSize;
+			let prevChange = null;
+			let tempX = startX;
+			let tempY = startY;
+			let newPos = { x: 0, y: 0 };
 
-		if (isUnique) {
-			solutions.push(b);
-		} {
-			duplicates.push(b);
-		}
-	} else {
-		fails.push(b);
-	}
+			this._callCounter++;
 
-	console.log(b.toString());
+			for (let x = tempX; x < N; x++) {
+				for (let y = tempY; y < N; y++) {
+					this._boardInstance.placeQueen(x, y)
+				}
 
-	iteration++;
-}
-
-function start() {
-	var firstQueenPos = {
-		x: 0,
-		y: 0,
-		next: function() {
-			if (this.y < (N - 1)) {
-				this.y++;
-			} else {
-				this.y = 0;
-				this.x++;
+				// Reset column in case we get <startX = x, startY = n>
+				// otherwise we would loop only rows <0, n>, <1, n>
+				tempY = 0;
 			}
-		}
-	};
 
-	for (var i = 0; i < N * N; i++) {
-		tryConfiguration(firstQueenPos);
+			// We got a solution if board has N queens
+			// since they can be placed only if allowed
+			if (this._boardInstance.getQueenCount() === N) {
+				this._solutions.push(this._boardInstance.toString());
+			}
 
-		firstQueenPos.next();
+			// End if we can't undo any change, there is nothing more to try
+			if (!this._boardInstance.changes.length) {
+				doneCallback();
+				return;
+			}
+
+			// Undo the previous queen placement, and store the action
+			prevChange = this._boardInstance.undoPreviousPlacement();
+
+			// Try the next cell
+			if (prevChange.y === (N - 1)) {
+				newPos.x = prevChange.x + 1;
+				newPos.y = 0;
+			} else {
+				newPos.x = prevChange.x;
+				newPos.y = prevChange.y + 1;
+			}
+
+			// Avoid exceeding the Node call stack limit
+			// and call the function recursively in nextTick
+			process.nextTick(() => {
+				placeFn(newPos.x, newPos.y)
+			});
+		};
+
+		placeFn(0, 0);
 	}
 
-	// fails.forEach(function(solution) {
-	// 	console.log(solution.toString());
-	// });
+	_printResults() {
+		if (this._printAllSolutions) {
+			console.log(`${this._solutions.join('')}`);
+		} else {
+			console.log(`${this._solutions.slice(0, DISPLAY_SOLUTIONS_COUNT).join('')}`);
+		}
 
-	// solutions.forEach(function(solution) {
-	// 	console.log(solution.toString());
-	// });
+		console.log(`function calls: ${this._callCounter}`);
+		console.log(`solutions: ${this._solutions.length}`);
+		console.timeEnd('time');
+	}
+
+	start() {
+		console.time('time');
+		this._runSolution(this._printResults.bind(this));
+	}
 }
 
-start();
-
-console.log('Found solutions:', solutions.length);
-console.log('Fails', fails.length);
-console.log('Duplicates', duplicates.length);
+module.exports = Solver;
