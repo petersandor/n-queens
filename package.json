@@ -1,7 +1,7 @@
 {
   "name": "n-queens",
   "version": "1.0.0",
-  "description": "",
+  "description": "Calculates possible placements of N queens on NxN board",
   "main": "queens.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -16,7 +16,8 @@
     "queens",
     "js",
     "node",
-    "cli"
+    "cli",
+    "puzzle"
   ],
   "author": "Peter Sandor <contact@petersandor.name>",
   "license": "MIT",
