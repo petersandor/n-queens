@@ -9,14 +9,21 @@ Algorithm used in this solution is not fully optimised (also, it's JS :). Runnin
 - Git (for cloning the repository, you can always just download and unzip)
 - Node & npm - latest version recommended
 
-## Clone the repository
+## Clone the repository and install dependencies
 
 ```
-$ git clone https://github.com/petersandor/n-queens.git && cd n-queens
+$ git clone https://github.com/petersandor/n-queens.git
+$ cd n-queens
+$ npm install
+```
+
+## Windows users
+If you are trying this out on Windows, use the script like this:
+```
+λ node queens -n 5 -p
 ```
 
 ## Usage
-
 ```
 $ ./queens.js
 
