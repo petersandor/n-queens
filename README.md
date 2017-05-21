@@ -6,7 +6,7 @@
 Algorithm used in this solution is not fully optimised (also, it's JS :). Running this for boards with size >10 can take some time. A lot of it. Process runs on single CPU only.
 
 ## Prerequisites
-- Git (for cloning the repository, you can always just download and unzip)
+- Git (for cloning the repository, you can always just [download a ZIP archive](https://github.com/petersandor/n-queens/archive/master.zip))
 - Node & npm - latest version recommended
 
 ## Clone the repository and install dependencies
